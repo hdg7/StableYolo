@@ -82,9 +82,13 @@ def response_query(text):
 def extract_prompt(message):
     start = message.find("```txt") + len("```txt")
     end = message.find("```", start)
-        
+    if message[start:end].find("ending with") != -1:
+        start = message.find("```txt", end) + len("```txt")
+        end = message.find("```", start)
     if start != -1 and end != -1:
         prompt = message[start:end].strip()
+        if prompt.find("ending with") != -1:
+            return None
         print(prompt)
         return prompt
     print("Prompt not found in response.")
@@ -178,6 +182,7 @@ def createPosPrompt(prompt,selection):
 
     
 def text2img(prompt,configuration={}):
+    oriprompt=prompt
     num_inference_steps = configuration['num_inference_steps']
     guidance_scale = configuration['guidance_scale']
     negative_prompt= createNegativePrompt(configuration['negative_prompt'])
@@ -191,10 +196,9 @@ def text2img(prompt,configuration={}):
     print(negative_prompt)
     newprompt = enhancePrompt(prompt)
     newnegative_prompt = enhancePrompt(negative_prompt, positive=False)
-
-    if type(newprompt) == str:
+    if type(newprompt) == str and newprompt.find(oriprompt) != -1:
         prompt = newprompt
-    if type(newnegative_prompt) == str:
+    if type(newnegative_prompt) == str and len(newnegative_prompt) > 4:
         negative_prompt = newnegative_prompt
         
     imagesAll = pipe(prompt,
@@ -216,6 +220,9 @@ def text2img(prompt,configuration={}):
             f.write(prompt)
             f.write("\n")
             f.write(negative_prompt)
+            f.write("\n")
+            f.write(str(configuration))
+            f.write("\n")
     return images,namehash + '.' +str(timestamp)
 
 def img2text(image_path):
@@ -384,6 +391,8 @@ class GAOptimizer:
             for box in boxesInfo:
                 totalCount+=1
                 avgPrecision+=box[2]
+            if boxesInfo == []:
+                totalCount+=10
         if(avgPrecision==0):
             #write the fitness to a file
             with open(namehash + ".fitness", 'w') as f:

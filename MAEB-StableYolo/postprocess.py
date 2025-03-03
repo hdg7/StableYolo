@@ -6,6 +6,21 @@ import os
 import sys
 import numpy as np
 
+def zip_best_individual(name):
+        #Remove the extension of the file
+        name = name[:-8]
+        #Extract the folder and subfolders for the current files
+        folder="/".join(name.split("/")[:-1])
+        exp = "_".join(name.split("/")[-3:-1])
+        name = name.split("/")[-1]
+        #Get all the files that start with the name
+        files = os.listdir(folder)
+        files = [file for file in files if file.startswith(name)]
+        #Create a zip with the files
+        for file in files:
+            os.system("zip " +  exp + "_" + name + ".zip " + folder + "/" + file)
+        print(files)
+
 def search_best_individual(folder):
         files = os.listdir(folder)
         best_fitness = -1
@@ -23,6 +38,14 @@ def search_best_individual(folder):
         print("Best fitness: " + str(best_fitness))
         print("Best individual: " + best_individual)
         print("File name: " + folder + "/" + best_file)
+        print("Prompts:")
+        #The best files ends with .fitness, so we need to remove this extension
+        original_best_file = best_file
+        best_file = best_file[:-8]
+        with open(folder + "/" + best_file + ".0.prompt.txt") as f:
+            lines = f.readlines()
+            print(lines)
+        zip_best_individual(folder + "/" + original_best_file)
         return best_individual
 
 def search_worst_individual(folder):
@@ -42,8 +65,15 @@ def search_worst_individual(folder):
         print("Worst fitness: " + str(worst_fitness))
         print("Worst individual: " + worst_individual)
         print("File name: " + folder + "/" + worst_file)
+        print("Prompts:")
+        #The best files ends with .fitness, so we need to remove this extension
+        worst_file = worst_file[:-8]
+        with open(folder + "/" + worst_file + ".0.prompt.txt") as f:
+            lines = f.readlines()
+            print(lines)
+        return worst_individual       
 
-def main():
+if __name__ == "__main__":
         if len(sys.argv) != 2:
                 print("Usage: python postprocess.py <folder>")
                 sys.exit(1)

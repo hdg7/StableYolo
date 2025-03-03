@@ -147,6 +147,9 @@ def text2img(prompt,configuration={}):
             f.write(prompt)
             f.write("\n")
             f.write(negative_prompt)
+            f.write("\n")
+            f.write(str(configuration))
+            f.write("\n")
     return images,namehash + '.' +str(timestamp)
 
 def img2text(image_path):
@@ -315,6 +318,8 @@ class GAOptimizer:
             for box in boxesInfo:
                 totalCount+=1
                 avgPrecision+=box[2]
+            if boxesInfo == []:
+                totalCount+=10
         if(avgPrecision==0):
             #write the fitness to a file
             with open(namehash + ".fitness", 'w') as f:
